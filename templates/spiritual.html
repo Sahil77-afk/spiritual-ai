@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+{% block title %}Spiritual AI — Divine Guidance{% endblock %}
+{% block content %}
+
+<div style="padding: 3.5rem 0 2rem; text-align:center;">
+
+    <!-- Badge -->
+    <div class="rise rise-1" style="margin-bottom:1.5rem;">
+        <span style="display:inline-flex;align-items:center;gap:8px;background:var(--mist);border:1px solid var(--border);border-radius:100px;padding:5px 16px;font-size:0.75rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);">
+            <span>✦</span> AI-Powered Spiritual Guidance
+        </span>
+    </div>
+
+    <!-- Title -->
+    <h1 class="rise rise-2" style="font-family:'Cormorant Garamond',serif;font-size:clamp(2.6rem,7vw,4.2rem);font-weight:300;line-height:1.05;color:var(--text);margin-bottom:0.75rem;">
+        Ask, and <em style="font-style:italic;color:var(--gold-2);">wisdom finds you</em>
+    </h1>
+    <p class="rise rise-3" style="font-size:0.95rem;color:var(--muted);margin-bottom:2rem;line-height:1.7;">
+        Guidance from the Bhagavad Gita, Holy Bible &amp; Holy Quran — one compassionate voice for all seekers.
+    </p>
+
+    <!-- Faith pills -->
+    <div class="faith-row rise rise-3" style="margin-bottom:2.5rem;">
+        <div class="faith-pill"><span class="dot dot-h"></span> Bhagavad Gita</div>
+        <div class="faith-pill"><span class="dot dot-c"></span> Holy Bible</div>
+        <div class="faith-pill"><span class="dot dot-i"></span> Holy Quran</div>
+    </div>
+</div>
+
+<hr class="thin-rule">
+
+<!-- Mood selector -->
+<div class="rise rise-4" style="margin-bottom:1.2rem;">
+    <p style="font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);text-align:center;margin-bottom:0.75rem;">How are you feeling right now?</p>
+    <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap;" id="moodRow">
+        {% set moods = [('😔','Sad'),('😰','Anxious'),('😤','Angry'),('😕','Confused'),('🙏','Seeking'),('😌','Peaceful'),('💔','Heartbroken'),('🤔','Curious')] %}
+        {% for emoji, label in moods %}
+        <button type="button" class="mood-btn" data-mood="{{ label }}" onclick="selectMood(this)"
+            style="background:var(--mist);border:1px solid var(--border);border-radius:100px;padding:5px 13px;font-size:0.8rem;color:var(--muted);cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:5px;">
+            {{ emoji }} {{ label }}
+        </button>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Ask form -->
+<form method="post" class="rise rise-5" id="askForm">
+    <input type="hidden" name="mood" id="moodInput" value="{{ mood or '' }}">
+    <div class="input-shell" style="padding:4px;">
+        <textarea name="question" id="questionBox"
+            placeholder="Speak your heart… What troubles you, seeker?&#10;e.g. 'How do I find peace when life feels overwhelming?'"
+            rows="3" style="padding:1rem 1.2rem;font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:300;line-height:1.6;resize:none;min-height:80px;">{{ question or '' }}</textarea>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:0.5rem 1rem 0.6rem;border-top:1px solid var(--border);">
+            <span style="font-size:0.72rem;color:var(--muted);">Your question is received with respect and care</span>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <!-- Language selector -->
+                <select id="langSelect" class="btn-ghost" style="padding:0.4rem 0.8rem;font-size:0.8rem;cursor:pointer;border-radius:8px;">
+                    <option value="">🌍 Auto Language</option>
+                    <option value="en">English</option>
+                    <option value="hi">हिंदी</option>
+                    <option value="ar">العربية</option>
+                    <option value="mr">मराठी</option>
+                    <option value="ta">தமிழ்</option>
+                    <option value="ur">اردو</option>
+                </select>
+                <button type="submit" class="btn-gold">
+                    Seek Guidance <i class="fas fa-arrow-right" style="font-size:0.75rem;"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+
+<!-- Lottie loading -->
+<div id="loading" style="display:none;width:160px;height:160px;margin:1.5rem auto;"></div>
+
+{% if question %}
+<!-- Response card -->
+<div class="glass-card rise rise-1" style="padding:2rem;margin:2rem 0;" id="responseCard">
+
+    <!-- User question -->
+    <div style="margin-bottom:1.5rem;padding-bottom:1.5rem;border-bottom:1px solid var(--border);">
+        <div class="label-tag">Your Question
+            {% if mood %}<span style="font-size:0.7rem;color:var(--muted);margin-left:8px;font-style:italic;text-transform:none;letter-spacing:0;">(Feeling: {{ mood }})</span>{% endif %}
+        </div>
+        <p style="font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-style:italic;color:var(--text);line-height:1.6;">{{ question }}</p>
+    </div>
+
+    <!-- AI response -->
+    <div id="aiResponseDiv">
+        <div class="label-tag">✦ Guidance</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:300;color:var(--text);line-height:1.85;" id="responseText">
+            {{ res | safe }}
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div style="display:flex;gap:10px;margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border);flex-wrap:wrap;align-items:center;">
+        <!-- TTS -->
+        <button class="btn-ghost" onclick="readAloud()" id="ttsBtn" title="Listen to response">
+            <i class="fas fa-volume-up"></i> Listen
+        </button>
+        <!-- Copy -->
+        <button class="btn-ghost" onclick="copyResponse()" title="Copy response">
+            <i class="fas fa-copy"></i> Copy
+        </button>
+        <!-- Share guidance -->
+        <button class="btn-ghost" onclick="shareToChat()" title="Share this guidance">
+            <i class="fas fa-share-alt"></i> Share
+        </button>
+        <!-- Rating -->
+        <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
+            <span style="font-size:0.75rem;color:var(--muted);">Was this helpful?</span>
+            <div id="stars" style="display:flex;gap:4px;">
+                {% for i in range(1,6) %}
+                <button class="star-btn" data-val="{{ i }}" onclick="rateResponse({{ i }})"
+                    style="background:none;border:none;color:rgba(212,168,83,0.3);font-size:1.1rem;cursor:pointer;transition:color 0.15s;padding:0;">★</button>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<!-- Default state: quote + disclaimer -->
+<div class="glass-card rise rise-1" style="padding:2rem;margin:2rem 0;">
+    <div id="quote" class="quote-block" style="margin-bottom:1.5rem;"></div>
+    <div class="disclaimer">
+        <div style="color:var(--gold);font-size:0.85rem;margin-top:2px;flex-shrink:0;"><i class="fas fa-circle-info"></i></div>
+        <div>
+            <h5>A note before you begin</h5>
+            <p>Spiritual AI offers perspectives drawn from sacred texts across traditions. These are reflections for your inner journey — not professional, medical, or legal advice. Approach with an open heart and your own discernment.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Feature cards -->
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin:1.5rem 0 3rem;" class="rise rise-2">
+    {% set features = [
+        ('fas fa-star','Horoscope','/horoscope','Daily cosmic guidance based on your birth date'),
+        ('fas fa-infinity','Numerology','/numerology','Discover your life path number and its meaning'),
+        ('fas fa-spa','Meditation','/meditation','Guided breathing and mindfulness sessions'),
+        ('fas fa-clock','Pomodoro','/pomodoro','Sacred focus sessions with mindful breaks'),
+        ('fas fa-book','Journal','/journal','Record your spiritual reflections privately'),
+    ] %}
+    {% for icon, title, link, desc in features %}
+    <a href="{{ link }}" style="text-decoration:none;">
+        <div class="glass-card" style="padding:1.2rem;transition:all 0.2s;cursor:pointer;" onmouseover="this.style.borderColor='rgba(212,168,83,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
+            <div style="color:var(--gold);font-size:1.1rem;margin-bottom:0.6rem;"><i class="{{ icon }}"></i></div>
+            <div style="font-weight:500;font-size:0.9rem;color:var(--text);margin-bottom:0.3rem;">{{ title }}</div>
+            <div style="font-size:0.78rem;color:var(--muted);line-height:1.5;">{{ desc }}</div>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% endif %}
+
+<script>
+function selectMood(btn) {
+    document.querySelectorAll('.mood-btn').forEach(b => {
+        b.style.background = 'var(--mist)';
+        b.style.color = 'var(--muted)';
+        b.style.borderColor = 'var(--border)';
+    });
+    btn.style.background = 'rgba(212,168,83,0.15)';
+    btn.style.color = 'var(--gold-2)';
+    btn.style.borderColor = 'rgba(212,168,83,0.5)';
+    document.getElementById('moodInput').value = btn.dataset.mood;
+}
+
+// Pre-select mood if returned from server
+(function(){
+    const mood = "{{ mood or '' }}";
+    if(mood){
+        document.querySelectorAll('.mood-btn').forEach(b=>{
+            if(b.dataset.mood === mood) selectMood(b);
+        });
+    }
+})();
+
+// Language: append to question if selected
+document.getElementById('askForm').addEventListener('submit', function(){
+    const lang = document.getElementById('langSelect').value;
+    if(lang){
+        const q = document.getElementById('questionBox');
+        if(!q.value.includes('[lang:')) q.value += ` [lang:${lang}]`;
+    }
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('askForm').querySelector('.btn-gold').disabled = true;
+});
+
+// TTS
+function readAloud(){
+    const text = document.getElementById('responseText').innerText;
+    if('speechSynthesis' in window){
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.rate = 0.9; u.pitch = 0.95;
+        window.speechSynthesis.speak(u);
+        document.getElementById('ttsBtn').innerHTML = '<i class="fas fa-stop"></i> Stop';
+        u.onend = ()=>{ document.getElementById('ttsBtn').innerHTML = '<i class="fas fa-volume-up"></i> Listen'; };
+    }
+}
+
+// Stop TTS if stop clicked
+document.getElementById('ttsBtn') && document.getElementById('ttsBtn').addEventListener('click', function(){
+    if(window.speechSynthesis.speaking){
+        window.speechSynthesis.cancel();
+        this.innerHTML = '<i class="fas fa-volume-up"></i> Listen';
+    }
+});
+
+// Copy response
+function copyResponse(){
+    const text = document.getElementById('responseText').innerText;
+    navigator.clipboard.writeText(text).then(()=>{
+        const btn = event.target.closest('button');
+        btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+        setTimeout(()=>btn.innerHTML='<i class="fas fa-copy"></i> Copy', 2000);
+    });
+}
+
+// Share — copy to clipboard instead of broken /community route
+function shareToChat(){
+    const q = "{{ question | replace('"', '\\"') | replace('\n', ' ') }}";
+    const shareText = '🙏 I asked Spiritual AI: "' + q + '"';
+    if (navigator.share) {
+        navigator.share({ title: 'Spiritual AI Guidance', text: shareText })
+            .catch(() => {});
+    } else {
+        navigator.clipboard.writeText(shareText).then(() => {
+            const btn = document.querySelector('[onclick="shareToChat()"]');
+            if (btn) { btn.innerHTML = '<i class="fas fa-check"></i> Copied!'; setTimeout(() => btn.innerHTML='<i class="fas fa-share-alt"></i> Share', 2000); }
+        });
+    }
+}
+
+// Star rating
+function rateResponse(val){
+    document.querySelectorAll('.star-btn').forEach((s,i)=>{
+        s.style.color = i < val ? 'var(--gold)' : 'rgba(212,168,83,0.25)';
+    });
+    fetch('/rate', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({question:"{{ question or '' }}", rating: val})
+    });
+}
+</script>
+{% endblock %}

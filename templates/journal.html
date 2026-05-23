@@ -1,0 +1,641 @@
+{% extends "base.html" %}
+{% block title %}Spiritual Journal | Spiritual AI{% endblock %}
+{% block head %}
+<style>
+/* ── Layout ── */
+.journal-layout {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 1.5rem;
+    padding-bottom: 3rem;
+    align-items: start;
+}
+@media(max-width: 768px) {
+    .journal-layout { grid-template-columns: 1fr; }
+}
+
+/* ── Write area ── */
+.write-card {
+    background: var(--mist);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+.write-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.write-header h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem;
+    font-weight: 400;
+    color: var(--text);
+}
+
+.date-pill {
+    font-size: 0.72rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+}
+
+.journal-textarea {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 1.5rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.15rem;
+    font-weight: 300;
+    color: var(--text);
+    line-height: 1.9;
+    resize: none;
+    min-height: 220px;
+}
+
+.journal-textarea::placeholder {
+    color: var(--muted);
+    font-style: italic;
+}
+
+.write-footer {
+    padding: 0.75rem 1.5rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+/* ── Mood row ── */
+.mood-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.mood-chip {
+    background: var(--mist);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 4px 11px;
+    font-size: 0.78rem;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.mood-chip.selected {
+    background: rgba(212,168,83,0.15);
+    color: var(--gold);
+    border-color: rgba(212,168,83,0.45);
+}
+
+/* ── Tags ── */
+.tag-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    padding: 0.5rem 1.5rem;
+    border-top: 1px solid var(--border);
+}
+
+.tag-chip {
+    background: var(--mist);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 3px 10px;
+    font-size: 0.72rem;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tag-chip.selected {
+    background: rgba(126,184,212,0.12);
+    color: var(--blue);
+    border-color: rgba(126,184,212,0.35);
+}
+
+/* ── AI Reflection box ── */
+.reflection-box {
+    background: rgba(212,168,83,0.05);
+    border: 1px solid rgba(212,168,83,0.2);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    margin: 0 1.5rem 1.5rem;
+    display: none;
+}
+
+.reflection-box.show { display: block; animation: rise 0.4s ease forwards; }
+
+.reflection-label {
+    font-size: 0.68rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 0.6rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.reflection-label::before { content: ''; display: block; width: 14px; height: 1px; background: var(--gold); }
+
+.reflection-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem;
+    font-style: italic;
+    color: var(--text);
+    line-height: 1.8;
+}
+
+/* ── Saving state ── */
+.saving-ring {
+    width: 18px; height: 18px;
+    border: 2px solid rgba(212,168,83,0.2);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    display: none;
+}
+
+/* ── Entries sidebar ── */
+.sidebar-section { margin-bottom: 1.5rem; }
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.entry-count {
+    font-size: 0.72rem;
+    color: var(--muted);
+    background: var(--mist);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 2px 9px;
+}
+
+/* ── Entry cards ── */
+.entry-card {
+    background: var(--mist);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.entry-card:hover {
+    border-color: rgba(212,168,83,0.3);
+    background: var(--mist-2);
+}
+
+.entry-card.expanded { border-color: rgba(212,168,83,0.35); }
+
+.entry-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.entry-date { font-size: 0.7rem; color: var(--muted); }
+.entry-mood { font-size: 0.8rem; }
+
+.entry-preview {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.95rem;
+    color: var(--text);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.entry-full {
+    display: none;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+}
+
+.entry-card.expanded .entry-preview { -webkit-line-clamp: unset; overflow: visible; }
+.entry-card.expanded .entry-full { display: block; }
+
+.entry-reflection {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.88rem;
+    font-style: italic;
+    color: var(--gold);
+    line-height: 1.6;
+    margin-bottom: 0.5rem;
+}
+
+.entry-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 0.5rem; }
+
+.entry-tag {
+    font-size: 0.65rem;
+    color: var(--blue);
+    background: rgba(126,184,212,0.08);
+    border: 1px solid rgba(126,184,212,0.2);
+    border-radius: 4px;
+    padding: 1px 7px;
+}
+
+.entry-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 0.6rem;
+}
+
+.del-btn {
+    background: rgba(255,100,100,0.08);
+    border: 1px solid rgba(255,100,100,0.2);
+    border-radius: 6px;
+    padding: 3px 10px;
+    font-size: 0.7rem;
+    color: #ff8080;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.del-btn:hover { background: rgba(255,100,100,0.15); }
+
+/* ── Stats ── */
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 1rem;
+}
+
+.stat-box {
+    background: var(--mist);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.75rem;
+    text-align: center;
+}
+
+.stat-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.6rem;
+    color: var(--gold);
+    line-height: 1;
+}
+
+.stat-label { font-size: 0.65rem; color: var(--muted); margin-top: 3px; }
+
+/* ── Empty state ── */
+.empty-state {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-style: italic;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-hero rise rise-1">
+    <h1>Spiritual <em>Journal</em></h1>
+    <p>Write your reflections — receive wisdom from all traditions in return</p>
+</div>
+<hr class="thin-rule">
+
+<div class="journal-layout">
+
+    <!-- ── Left: Write ── -->
+    <div>
+        <div class="write-card rise rise-2">
+            <div class="write-header">
+                <h3>Today's Reflection</h3>
+                <span class="date-pill" id="todayDate"></span>
+            </div>
+
+            <!-- Mood selector -->
+            <div style="padding: 0.75rem 1.5rem; border-bottom: 1px solid var(--border);">
+                <div style="font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:0.5rem;">How are you feeling?</div>
+                <div class="mood-row" id="moodRow">
+                    {% for e, m in [('😌','Peaceful'),('🙏','Grateful'),('😔','Heavy'),('😰','Anxious'),('💫','Inspired'),('🌿','Grounded'),('💔','Heartbroken'),('🤔','Seeking')] %}
+                    <div class="mood-chip" data-mood="{{ m }}" onclick="selectMood(this)">{{ e }} {{ m }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Tags -->
+            <div class="tag-row" id="tagRow">
+                <span style="font-size:0.7rem;color:var(--muted);align-self:center;margin-right:4px;">Tag:</span>
+                {% for t in ['Faith','Gratitude','Prayer','Struggle','Growth','Family','Work','Health','Love','Purpose'] %}
+                <div class="tag-chip" data-tag="{{ t }}" onclick="selectTag(this)">{{ t }}</div>
+                {% endfor %}
+            </div>
+
+            <!-- Text area -->
+            <textarea class="journal-textarea" id="journalText"
+                placeholder="Write freely… What is on your heart today? What are you grateful for? What troubles you? What do you seek?&#10;&#10;Your words are private and sacred."></textarea>
+
+            <!-- AI Reflection (shown after save) -->
+            <div class="reflection-box" id="reflectionBox">
+                <div class="reflection-label">✦ Spiritual Reflection</div>
+                <p class="reflection-text" id="reflectionText"></p>
+            </div>
+
+            <!-- Footer -->
+            <div class="write-footer">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <div class="saving-ring" id="savingRing"></div>
+                    <span style="font-size:0.72rem;color:var(--muted);" id="saveStatus">Your entries are saved privately on this device</span>
+                </div>
+                <div style="display:flex;gap:8px;">
+                    <button class="btn-ghost" onclick="clearForm()">
+                        <i class="fas fa-times"></i> Clear
+                    </button>
+                    <button class="btn-gold" id="saveBtn" onclick="saveEntry()">
+                        <i class="fas fa-feather"></i> Save & Reflect
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Writing tips -->
+        <div class="glass-card rise rise-3" style="padding:1.25rem 1.5rem;margin-top:1rem;">
+            <div class="label-tag" style="margin-bottom:0.75rem;">Writing Prompts</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="promptGrid">
+                {% for p in [
+                    'What am I grateful for today?',
+                    'What challenge is testing my faith?',
+                    'What does my soul need right now?',
+                    'Where did I see divine grace today?',
+                    'What am I holding on to that I should release?',
+                    'What intention do I set for tomorrow?'
+                ] %}
+                <div onclick="usePrompt('{{ p }}')"
+                    style="background:var(--mist);border:1px solid var(--border);border-radius:8px;padding:0.6rem 0.8rem;font-size:0.78rem;color:var(--muted);cursor:pointer;transition:all 0.2s;line-height:1.4;"
+                    onmouseover="this.style.color='var(--text)';this.style.borderColor='rgba(212,168,83,0.3)'"
+                    onmouseout="this.style.color='var(--muted)';this.style.borderColor='var(--border)'">
+                    {{ p }}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Right: Entries sidebar ── -->
+    <div class="rise rise-2">
+
+        <!-- Stats -->
+        <div class="stats-row">
+            <div class="stat-box">
+                <div class="stat-num" id="statTotal">{{ entries|length }}</div>
+                <div class="stat-label">Entries</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-num" id="statStreak">–</div>
+                <div class="stat-label">Day Streak</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-num" id="statWords">–</div>
+                <div class="stat-label">Avg Words</div>
+            </div>
+        </div>
+
+        <!-- Entry list -->
+        <div class="sidebar-section">
+            <div class="sidebar-header">
+                <div class="label-tag" style="margin:0;">Past Entries</div>
+                <span class="entry-count" id="entryCount">{{ entries|length }}</span>
+            </div>
+
+            <div id="entryList">
+                {% if entries %}
+                    {% for e in entries %}
+                    <div class="entry-card" id="card-{{ e.id }}" onclick="toggleEntry(this)">
+                        <div class="entry-meta">
+                            <span class="entry-date">{{ e.date }} · {{ e.time }}</span>
+                            <span class="entry-mood">{{ e.mood }}</span>
+                        </div>
+                        <div class="entry-preview">{{ e.text }}</div>
+                        <div class="entry-full">
+                            {% if e.reflection %}
+                            <div class="entry-reflection">✦ {{ e.reflection }}</div>
+                            {% endif %}
+                            {% if e.tags %}
+                            <div class="entry-tags">
+                                {% for t in e.tags %}<span class="entry-tag">{{ t }}</span>{% endfor %}
+                            </div>
+                            {% endif %}
+                            <div class="entry-actions">
+                                <button class="btn-ghost" style="font-size:0.72rem;padding:3px 10px;"
+                                    onclick="event.stopPropagation();readEntry('{{ e.text | replace("'", "\\'") | replace('\n', ' ') }}')">
+                                    <i class="fas fa-volume-up"></i> Listen
+                                </button>
+                                <button class="del-btn"
+                                    onclick="event.stopPropagation();deleteEntry('{{ e.id }}')">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state" id="emptyState">
+                        <div style="font-size:2rem;margin-bottom:0.5rem;">📔</div>
+                        Your journal is empty.<br>Write your first reflection above.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ── State ─────────────────────────────────────────────────
+let selectedMood = '';
+let selectedTags = [];
+let totalEntries = {{ entries|length }};
+
+// ── Init ──────────────────────────────────────────────────
+document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-US', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+
+// Compute stats
+(function computeStats(){
+    const entries = document.querySelectorAll('.entry-card');
+    if(!entries.length) return;
+    // Avg words
+    let totalWords = 0;
+    entries.forEach(e => {
+        const preview = e.querySelector('.entry-preview');
+        if(preview) totalWords += preview.textContent.trim().split(/\s+/).length;
+    });
+    document.getElementById('statWords').textContent = Math.round(totalWords / entries.length);
+    // Streak (simplified)
+    document.getElementById('statStreak').textContent = Math.min(entries.length, 7);
+})();
+
+// ── Mood ──────────────────────────────────────────────────
+function selectMood(el){
+    document.querySelectorAll('.mood-chip').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedMood = el.dataset.mood;
+}
+
+// ── Tags ──────────────────────────────────────────────────
+function selectTag(el){
+    el.classList.toggle('selected');
+    const tag = el.dataset.tag;
+    if(selectedTags.includes(tag)) selectedTags = selectedTags.filter(t => t !== tag);
+    else selectedTags.push(tag);
+}
+
+// ── Prompt ────────────────────────────────────────────────
+function usePrompt(p){
+    const ta = document.getElementById('journalText');
+    ta.value = ta.value ? ta.value + '\n\n' + p + '\n' : p + '\n';
+    ta.focus();
+    ta.style.height = 'auto';
+    ta.style.height = ta.scrollHeight + 'px';
+}
+
+// ── Save ──────────────────────────────────────────────────
+async function saveEntry(){
+    const text = document.getElementById('journalText').value.trim();
+    if(!text){ alert('Please write something first 🙏'); return; }
+
+    const btn = document.getElementById('saveBtn');
+    const ring = document.getElementById('savingRing');
+    const status = document.getElementById('saveStatus');
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Reflecting…';
+    ring.style.display = 'block';
+    status.textContent = 'Seeking divine wisdom for your reflection…';
+
+    try {
+        const resp = await fetch('/journal/save', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ text, mood: selectedMood, tags: selectedTags })
+        });
+        const data = await resp.json();
+
+        if(data.ok){
+            // Show reflection
+            const box = document.getElementById('reflectionBox');
+            document.getElementById('reflectionText').textContent = data.entry.reflection;
+            box.classList.add('show');
+
+            // Prepend entry card
+            prependEntryCard(data.entry);
+            totalEntries++;
+            document.getElementById('statTotal').textContent = totalEntries;
+            document.getElementById('entryCount').textContent = totalEntries;
+
+            status.textContent = 'Saved ✓ Your reflection has been received';
+            document.getElementById('emptyState') && (document.getElementById('emptyState').style.display='none');
+        }
+    } catch(e){
+        status.textContent = 'Could not save. Please try again.';
+    } finally {
+        ring.style.display = 'none';
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-feather"></i> Save & Reflect';
+    }
+}
+
+function prependEntryCard(entry){
+    const list = document.getElementById('entryList');
+    const div = document.createElement('div');
+    div.className = 'entry-card';
+    div.id = 'card-' + entry.id;
+    div.onclick = function(){ toggleEntry(this); };
+    div.innerHTML = `
+        <div class="entry-meta">
+            <span class="entry-date">${entry.date} · ${entry.time}</span>
+            <span class="entry-mood">${entry.mood}</span>
+        </div>
+        <div class="entry-preview">${escHtml(entry.text)}</div>
+        <div class="entry-full">
+            ${entry.reflection ? '<div class="entry-reflection">✦ ' + escHtml(entry.reflection) + '</div>' : ''}
+            ${entry.tags && entry.tags.length ? '<div class="entry-tags">' + entry.tags.map(t=>'<span class="entry-tag">'+t+'</span>').join('') + '</div>' : ''}
+            <div class="entry-actions">
+                <button class="btn-ghost" style="font-size:0.72rem;padding:3px 10px;"
+                    onclick="event.stopPropagation();readEntry('${entry.text.replace(/'/g,"\\'").replace(/\n/g,' ')}')">
+                    <i class="fas fa-volume-up"></i> Listen
+                </button>
+                <button class="del-btn" onclick="event.stopPropagation();deleteEntry('${entry.id}')">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </div>
+        </div>`;
+    list.insertBefore(div, list.firstChild);
+}
+
+function clearForm(){
+    document.getElementById('journalText').value = '';
+    document.getElementById('reflectionBox').classList.remove('show');
+    document.querySelectorAll('.mood-chip').forEach(c => c.classList.remove('selected'));
+    document.querySelectorAll('.tag-chip').forEach(c => c.classList.remove('selected'));
+    selectedMood = ''; selectedTags = [];
+    document.getElementById('saveStatus').textContent = 'Your entries are saved privately on this device';
+}
+
+// ── Entries ───────────────────────────────────────────────
+function toggleEntry(el){
+    const wasExpanded = el.classList.contains('expanded');
+    document.querySelectorAll('.entry-card').forEach(c => c.classList.remove('expanded'));
+    if(!wasExpanded) el.classList.add('expanded');
+}
+
+async function deleteEntry(id){
+    if(!confirm('Delete this entry?')) return;
+    await fetch('/journal/delete', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({id})
+    });
+    const card = document.getElementById('card-' + id);
+    card && card.remove();
+    totalEntries = Math.max(0, totalEntries - 1);
+    document.getElementById('statTotal').textContent = totalEntries;
+    document.getElementById('entryCount').textContent = totalEntries;
+}
+
+function readEntry(text){
+    if('speechSynthesis' in window){
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.rate = 0.9;
+        window.speechSynthesis.speak(u);
+    }
+}
+
+function escHtml(t){
+    return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+}
+
+// Auto-resize textarea
+document.getElementById('journalText').addEventListener('input', function(){
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 400) + 'px';
+});
+</script>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Numerology | Spiritual AI{% endblock %}
+{% block content %}
+<div class="page-hero rise rise-1">
+    <h1>Sacred <em>Numerology</em></h1>
+    <p>Discover your Life Path Number — the core of your soul's journey</p>
+</div>
+<hr class="thin-rule">
+
+<div class="glass-card rise rise-2" style="padding:2rem;max-width:560px;margin:0 auto 2rem;">
+    <form method="POST">
+        <label class="styled-label">Your Date of Birth</label>
+        <div class="input-shell" style="padding:0.1rem;margin-bottom:1.2rem;">
+            <input type="date" name="date" class="styled-input" value="{{ selected_date }}" style="padding:0.75rem 1rem;" required>
+        </div>
+        <button type="submit" class="btn-gold" style="width:100%;justify-content:center;">
+            <i class="fas fa-infinity"></i> Calculate My Number
+        </button>
+    </form>
+
+    {% if numerology_number %}
+    <div style="margin-top:2rem;padding-top:2rem;border-top:1px solid var(--border);">
+
+        <!-- Number display -->
+        <div style="text-align:center;margin-bottom:1.5rem;">
+            <div style="width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,rgba(212,168,83,0.2),rgba(212,168,83,0.05));border:2px solid rgba(212,168,83,0.5);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+                <span style="font-family:'Cormorant Garamond',serif;font-size:3rem;color:var(--gold);">{{ numerology_number }}</span>
+            </div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:300;color:var(--gold-2);">{{ tagline }}</div>
+            <div style="font-size:0.75rem;color:var(--muted);margin-top:4px;">Life Path Number {{ numerology_number }}</div>
+        </div>
+
+        <div class="label-tag">Your Sacred Insight</div>
+        <p style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;line-height:1.8;color:var(--text);">{{ insight }}</p>
+
+        <div style="margin-top:1rem;">
+            <button class="btn-ghost" onclick="readInsight()"><i class="fas fa-volume-up"></i> Listen</button>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- All numbers reference -->
+<div style="max-width:560px;margin:0 auto 3rem;" class="rise rise-3">
+    <div class="label-tag" style="margin-bottom:1rem;">Life Path Numbers 1–9</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+        {% for n, label in [(1,'Leader'),(2,'Diplomat'),(3,'Creator'),(4,'Builder'),(5,'Adventurer'),(6,'Nurturer'),(7,'Seeker'),(8,'Achiever'),(9,'Humanitarian')] %}
+        <div class="glass-card" style="padding:0.9rem;text-align:center;{% if numerology_number == n %}border-color:rgba(212,168,83,0.5);background:rgba(212,168,83,0.08);{% endif %}">
+            <div style="font-family:'Cormorant Garamond',serif;font-size:1.8rem;color:var(--gold);">{{ n }}</div>
+            <div style="font-size:0.72rem;color:var(--muted);margin-top:2px;">{{ label }}</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+function readInsight(){
+    const text = `{{ insight | replace("'", "\\'") | replace('"', '\\"') }}`;
+    if('speechSynthesis' in window){
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.rate = 0.9;
+        window.speechSynthesis.speak(u);
+    }
+}
+</script>
+{% endblock %}

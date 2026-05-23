@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+venv/
+venv311/
+deactivate/
+env/
+.venv/
+ENV/
+
+# Environment secrets — NEVER commit this
+.env
+
+# Flask session files
+.flask_session/
+
+# IDE / editor artifacts
+.breakpoints
+.idea/
+.vscode/
+*.swp
+*~
+*.bak
+*.backup
+.~lock.*
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# pyproject / poetry (kept out of simple deploys)
+poetry.lock
+pyproject.toml
+pyvenv.cfg
+replit.nix
+
+# Journal data (user data — keep local)
+journal_entries.json

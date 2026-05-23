@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Horoscope | Spiritual AI{% endblock %}
+{% block content %}
+<div class="page-hero rise rise-1">
+    <h1>Daily <em>Horoscope</em></h1>
+    <p>Discover your cosmic guidance for today based on your birth date</p>
+</div>
+<hr class="thin-rule">
+
+<div class="glass-card rise rise-2" style="padding:2rem;max-width:560px;margin:0 auto 3rem;">
+    <form method="POST">
+        <label class="styled-label">Your Date of Birth</label>
+        <div class="input-shell" style="padding:0.1rem;margin-bottom:1.2rem;">
+            <input type="date" name="date" class="styled-input" value="{{ selected_date }}" style="padding:0.75rem 1rem;" required>
+        </div>
+        <button type="submit" class="btn-gold" style="width:100%;justify-content:center;">
+            <i class="fas fa-star"></i> Reveal My Horoscope
+        </button>
+    </form>
+
+    {% if zodiac_sign %}
+    <div style="margin-top:2rem;padding-top:2rem;border-top:1px solid var(--border);">
+
+        <!-- Sign display -->
+        <div style="text-align:center;margin-bottom:1.5rem;">
+            <div style="font-size:3rem;margin-bottom:0.5rem;">
+                {{ {'Aries':'♈','Taurus':'♉','Gemini':'♊','Cancer':'♋','Leo':'♌','Virgo':'♍','Libra':'♎','Scorpio':'♏','Sagittarius':'♐','Capricorn':'♑','Aquarius':'♒','Pisces':'♓'}.get(zodiac_sign,'✦') }}
+            </div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:300;color:var(--gold-2);">{{ zodiac_sign }}</div>
+            <div style="font-size:0.75rem;color:var(--muted);margin-top:4px;letter-spacing:0.1em;">{{ selected_date }}</div>
+        </div>
+
+        <!-- Horoscope text -->
+        <div class="label-tag">Today's Guidance</div>
+        <p style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;line-height:1.8;color:var(--text);">{{ horoscope }}</p>
+
+        <!-- TTS -->
+        <div style="margin-top:1rem;">
+            <button class="btn-ghost" onclick="readHoro()"><i class="fas fa-volume-up"></i> Listen</button>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Zodiac wheel info -->
+<div style="max-width:560px;margin:0 auto 3rem;">
+    <div class="label-tag" style="margin-bottom:1rem;">All Zodiac Signs</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
+        {% for sign, sym in [('Aries','♈'),('Taurus','♉'),('Gemini','♊'),('Cancer','♋'),('Leo','♌'),('Virgo','♍'),('Libra','♎'),('Scorpio','♏'),('Sagittarius','♐'),('Capricorn','♑'),('Aquarius','♒'),('Pisces','♓')] %}
+        <div class="glass-card" style="padding:0.75rem;text-align:center;{% if zodiac_sign == sign %}border-color:rgba(212,168,83,0.5);background:rgba(212,168,83,0.08);{% endif %}">
+            <div style="font-size:1.3rem;">{{ sym }}</div>
+            <div style="font-size:0.72rem;color:var(--muted);margin-top:2px;">{{ sign }}</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+function readHoro(){
+    const text = `{{ horoscope | replace("'", "\\'") | replace('"', '\\"') }}`;
+    if('speechSynthesis' in window){
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.rate = 0.9;
+        window.speechSynthesis.speak(u);
+    }
+}
+</script>
+{% endblock %}

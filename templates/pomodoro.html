@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Pomodoro | Spiritual AI{% endblock %}
+{% block content %}
+<div class="page-hero rise rise-1">
+    <h1>Sacred <em>Focus</em></h1>
+    <p>Mindful work sessions inspired by the Pomodoro technique</p>
+</div>
+<hr class="thin-rule">
+
+<div style="max-width:480px;margin:0 auto;padding-bottom:3rem;">
+    <div class="glass-card rise rise-2" style="padding:0.5rem;display:flex;gap:0.5rem;margin-bottom:1.5rem;border-radius:14px;">
+        <button id="btn-focus" class="pomo-tab active" onclick="setMode('focus',25,'Focus')">🧘 Focus</button>
+        <button id="btn-short" class="pomo-tab" onclick="setMode('short',5,'Short Break')">🌿 Short Break</button>
+        <button id="btn-long" class="pomo-tab" onclick="setMode('long',15,'Long Break')">🌙 Long Break</button>
+    </div>
+
+    <div class="glass-card rise rise-3" style="padding:2.5rem;text-align:center;margin-bottom:1.5rem;">
+        <div id="modeLabel" style="font-size:0.72rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:0.75rem;">FOCUS SESSION</div>
+        <div id="time" style="font-family:'Cormorant Garamond',serif;font-size:5.5rem;color:var(--gold);line-height:1;margin-bottom:0.75rem;">25:00</div>
+        <svg width="200" height="10" style="margin-bottom:1.25rem;">
+            <rect x="0" y="3" width="200" height="4" rx="2" fill="rgba(212,168,83,0.1)"/>
+            <rect x="0" y="3" id="progressBar" width="0" height="4" rx="2" fill="var(--gold)" style="transition:width 1s linear;"/>
+        </svg>
+        <div style="display:flex;gap:10px;justify-content:center;">
+            <button id="btn-start" class="btn-gold" onclick="startTimer()"><i class="fas fa-play"></i> Start</button>
+            <button id="btn-pause" class="btn-ghost" onclick="pauseTimer()" style="display:none;"><i class="fas fa-pause"></i> Pause</button>
+            <button id="btn-reset" class="btn-ghost" onclick="resetTimer()" style="display:none;"><i class="fas fa-redo"></i></button>
+        </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;" class="rise rise-4">
+        <div class="glass-card" style="padding:1rem;text-align:center;">
+            <div style="font-family:'Cormorant Garamond',serif;font-size:2rem;color:var(--gold);" id="statPomos">0</div>
+            <div style="font-size:0.7rem;color:var(--muted);">Sessions</div>
+        </div>
+        <div class="glass-card" style="padding:1rem;text-align:center;">
+            <div style="font-family:'Cormorant Garamond',serif;font-size:2rem;color:var(--gold);" id="statMins">0</div>
+            <div style="font-size:0.7rem;color:var(--muted);">Minutes</div>
+        </div>
+        <div class="glass-card" style="padding:1rem;text-align:center;">
+            <div style="font-family:'Cormorant Garamond',serif;font-size:2rem;color:var(--gold);" id="statBreaks">0</div>
+            <div style="font-size:0.7rem;color:var(--muted);">Breaks</div>
+        </div>
+    </div>
+    <div class="quote-block rise rise-5" style="margin-top:1.5rem;" id="pomoQuote">
+        "Let your work be the worship." — Bhagavad Gita
+    </div>
+</div>
+
+<style>
+.pomo-tab { flex:1;padding:0.6rem;border-radius:10px;background:transparent;border:none;color:var(--muted);font-size:0.82rem;cursor:pointer;transition:all 0.2s; }
+.pomo-tab.active { background:rgba(212,168,83,0.15);color:var(--gold); }
+.pomo-tab:hover:not(.active) { color:var(--text); }
+</style>
+<script>
+let mode='focus',totalSecs=1500,secsLeft=1500,running=false,iv=null,pomos=0,breaks=0,totalMins=0;
+const pomoQuotes=['"Let your work be the worship." — Bhagavad Gita','"Do not be lazy in your duties." — Holy Quran','"Whatever you do, do it with all your heart." — Colossians 3:23','"Action is the foundational key to all success." — Bhagavad Gita'];
+function setMode(m,mins,label){if(running)resetTimer();mode=m;totalSecs=secsLeft=mins*60;document.getElementById('modeLabel').textContent=label.toUpperCase()+' SESSION';document.querySelectorAll('.pomo-tab').forEach(b=>b.classList.remove('active'));document.getElementById('btn-'+(m==='focus'?'focus':m==='short'?'short':'long')).classList.add('active');updateDisplay();updateProgress();document.getElementById('pomoQuote').textContent=pomoQuotes[Math.floor(Math.random()*pomoQuotes.length)];}
+function startTimer(){running=true;document.getElementById('btn-start').style.display='none';document.getElementById('btn-pause').style.display='flex';document.getElementById('btn-reset').style.display='flex';iv=setInterval(()=>{secsLeft--;updateDisplay();updateProgress();if(secsLeft<=0){clearInterval(iv);running=false;if(mode==='focus'){pomos++;totalMins+=25;document.getElementById('statPomos').textContent=pomos;document.getElementById('statMins').textContent=totalMins;}else{breaks++;document.getElementById('statBreaks').textContent=breaks;}document.getElementById('btn-start').style.display='flex';document.getElementById('btn-pause').style.display='none';document.getElementById('btn-reset').style.display='none';document.getElementById('modeLabel').textContent=(mode==='focus'?'✓ SESSION COMPLETE':'✓ BREAK COMPLETE');document.getElementById('time').style.color='var(--green)';setTimeout(()=>{document.getElementById('time').style.color='var(--gold)';document.getElementById('modeLabel').textContent=(mode+' SESSION').toUpperCase();},4000);}},1000);}
+function pauseTimer(){clearInterval(iv);running=false;document.getElementById('btn-start').innerHTML='<i class="fas fa-play"></i> Resume';document.getElementById('btn-start').style.display='flex';document.getElementById('btn-pause').style.display='none';}
+function resetTimer(){clearInterval(iv);running=false;secsLeft=totalSecs;updateDisplay();updateProgress();document.getElementById('btn-start').innerHTML='<i class="fas fa-play"></i> Start';document.getElementById('btn-start').style.display='flex';document.getElementById('btn-pause').style.display='none';document.getElementById('btn-reset').style.display='none';}
+function updateDisplay(){const m=String(Math.floor(secsLeft/60)).padStart(2,'0');const s=String(secsLeft%60).padStart(2,'0');document.getElementById('time').textContent=`${m}:${s}`;document.title=`${m}:${s} — Spiritual AI`;}
+function updateProgress(){document.getElementById('progressBar').setAttribute('width',((totalSecs-secsLeft)/totalSecs)*200);}
+</script>
+{% endblock %}

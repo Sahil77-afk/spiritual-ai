@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Contact | Spiritual AI{% endblock %}
+{% block content %}
+<div class="page-hero rise rise-1">
+    <h1>Get in <em>Touch</em></h1>
+    <p>Feedback, questions, or just saying hello 🙏</p>
+</div>
+<hr class="thin-rule">
+<div style="display:grid;grid-template-columns:1fr 1.5fr;gap:2rem;padding-bottom:3rem;max-width:900px;margin:0 auto;" class="contact-grid rise rise-2">
+    <div>
+        <div class="glass-card" style="padding:1.5rem;margin-bottom:1rem;">
+            <div class="label-tag" style="margin-bottom:1rem;">Contact Info</div>
+            {% for icon,text in [('fas fa-map-marker-alt','Mumbai, Maharashtra, India'),('fas fa-envelope','contact.spiritual.ai@gmail.com'),('fas fa-phone','+91 8104910220'),('fas fa-globe','spiritual-ai.onrender.com')] %}
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:0.9rem;">
+                <div style="width:32px;height:32px;border-radius:8px;background:var(--mist);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:0.8rem;flex-shrink:0;"><i class="{{ icon }}"></i></div>
+                <span style="font-size:0.85rem;color:var(--muted);">{{ text }}</span>
+            </div>
+            {% endfor %}
+            <div style="display:flex;gap:8px;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border);">
+                {% for icon,url in [('fab fa-instagram','https://instagram.com'),('fab fa-twitter','https://x.com'),('fab fa-facebook-f','https://facebook.com'),('fab fa-linkedin-in','https://linkedin.com')] %}
+                <a href="{{ url }}" style="width:34px;height:34px;border-radius:8px;background:var(--mist);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--muted);text-decoration:none;transition:all 0.2s;font-size:0.85rem;" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--muted)'"><i class="{{ icon }}"></i></a>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="glass-card" style="padding:1.5rem;">
+            <div class="label-tag" style="margin-bottom:1rem;">FAQ</div>
+            {% for q,a in [('What is Spiritual AI?','An AI multi-faith platform drawing from the Bhagavad Gita, Holy Bible, and Holy Quran.'),('Is my data safe?','Yes — we do not store your questions or personal data.'),('Which religions are covered?','Hinduism, Christianity, and Islam — equally and respectfully.'),('Can I use it in my language?','Yes! Ask in any language and the AI will respond in the same language.')] %}
+            <div style="margin-bottom:0.75rem;border-bottom:1px solid var(--border);padding-bottom:0.75rem;">
+                <div style="font-size:0.85rem;font-weight:500;color:var(--text);cursor:pointer;display:flex;justify-content:space-between;" onclick="const a=this.nextElementSibling,i=this.querySelector('i');const o=a.style.display!=='none';a.style.display=o?'none':'block';i.style.transform=o?'':'rotate(180deg)';">
+                    {{ q }} <i class="fas fa-chevron-down" style="font-size:0.7rem;color:var(--muted);transition:transform 0.2s;flex-shrink:0;margin-left:8px;margin-top:3px;"></i>
+                </div>
+                <div style="display:none;font-size:0.82rem;color:var(--muted);margin-top:0.5rem;line-height:1.6;">{{ a }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="glass-card" style="padding:2rem;">
+        <div class="label-tag" style="margin-bottom:1.5rem;">Send a Message</div>
+        {% if success %}<div style="background:rgba(109,191,135,0.1);border:1px solid rgba(109,191,135,0.3);border-radius:10px;padding:1rem;margin-bottom:1.2rem;font-size:0.85rem;color:#6DBF87;"><i class="fas fa-check-circle"></i> Message sent! We'll get back to you soon.</div>{% endif %}
+        {% if error %}<div style="background:rgba(255,100,100,0.1);border:1px solid rgba(255,100,100,0.3);border-radius:10px;padding:1rem;margin-bottom:1.2rem;font-size:0.85rem;color:#ff6464;"><i class="fas fa-exclamation-circle"></i> {{ error }}</div>{% endif %}
+        <form method="POST" action="/contact">
+            {% for n,p,t,r in [('full_name','Full Name','text',True),('email','Email Address','email',True),('phone','Phone (optional)','text',False),('subject','Subject','text',True)] %}
+            <div style="margin-bottom:0.9rem;"><div class="input-shell" style="padding:2px;"><input type="{{ t }}" name="{{ n }}" placeholder="{{ p }}" style="padding:0.7rem 1rem;background:transparent;border:none;outline:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.9rem;width:100%;" {% if r %}required{% endif %}></div></div>
+            {% endfor %}
+            <div style="margin-bottom:1.2rem;"><div class="input-shell" style="padding:2px;"><textarea name="message" placeholder="Your message…" rows="5" style="padding:0.7rem 1rem;background:transparent;border:none;outline:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.9rem;width:100%;resize:none;" required></textarea></div></div>
+            <button type="submit" class="btn-gold" style="width:100%;justify-content:center;"><i class="fas fa-paper-plane"></i> Send Message</button>
+        </form>
+    </div>
+</div>
+<style>@media(max-width:700px){.contact-grid{grid-template-columns:1fr !important;}}</style>
+{% endblock %}

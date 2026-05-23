@@ -1,0 +1,370 @@
+{% extends "base.html" %}
+{% block title %}Meditation | Spiritual AI{% endblock %}
+{% block head %}
+<style>
+.med-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:1.5rem; padding:1.5rem 0 3rem; }
+
+/* Breathing */
+.breath-card { grid-column: span 2; }
+@media(max-width:700px){ .breath-card { grid-column: span 1; } }
+
+.breath-wrap { display:flex; flex-direction:column; align-items:center; gap:1.5rem; padding:2rem; }
+.breath-circle-outer {
+    width:200px; height:200px; border-radius:50%;
+    background: radial-gradient(circle, rgba(212,168,83,0.05) 0%, transparent 70%);
+    border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center;
+    position:relative;
+}
+.breath-circle {
+    width:120px; height:120px; border-radius:50%;
+    background: radial-gradient(circle, rgba(212,168,83,0.25), rgba(212,168,83,0.05));
+    border:2px solid rgba(212,168,83,0.5);
+    display:flex; align-items:center; justify-content:center;
+    transition: transform 0s;
+    position:relative; z-index:1;
+}
+.breath-circle.inhale { animation: breathIn var(--in-dur,4s) ease-in-out forwards; }
+.breath-circle.hold   { animation: none; transform: scale(1.4); }
+.breath-circle.exhale { animation: breathOut var(--out-dur,6s) ease-in-out forwards; }
+@keyframes breathIn  { from{transform:scale(1);}  to{transform:scale(1.4);} }
+@keyframes breathOut { from{transform:scale(1.4);} to{transform:scale(1);}  }
+
+.breath-label { font-family:'Cormorant Garamond',serif; font-size:1.3rem; font-style:italic; color:var(--gold-2); }
+.breath-count { font-size:2rem; font-family:'Cormorant Garamond',serif; color:var(--text); }
+.breath-phase { font-size:0.75rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--muted); min-height:18px; }
+
+.technique-btns { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+.tech-btn {
+    background:var(--mist); border:1px solid var(--border); border-radius:100px;
+    padding:5px 14px; font-size:0.78rem; color:var(--muted); cursor:pointer;
+    transition:all 0.2s;
+}
+.tech-btn.active { background:rgba(212,168,83,0.15); color:var(--gold); border-color:rgba(212,168,83,0.4); }
+
+/* Mala counter */
+.mala-wrap { display:flex; flex-direction:column; align-items:center; gap:1rem; padding:1.5rem; }
+.mala-display {
+    width:160px; height:160px; border-radius:50%;
+    background: conic-gradient(var(--gold) calc(var(--pct,0)*1%), rgba(212,168,83,0.1) 0);
+    display:flex; align-items:center; justify-content:center;
+    position:relative;
+}
+.mala-inner {
+    width:120px; height:120px; border-radius:50%;
+    background:var(--ink-2); border:1px solid var(--border);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+}
+.mala-num { font-family:'Cormorant Garamond',serif; font-size:2.5rem; color:var(--gold); line-height:1; }
+.mala-of108 { font-size:0.7rem; color:var(--muted); letter-spacing:0.1em; }
+.mala-tap {
+    width:70px; height:70px; border-radius:50%;
+    background:linear-gradient(135deg,rgba(212,168,83,0.2),rgba(212,168,83,0.05));
+    border:2px solid rgba(212,168,83,0.4); color:var(--gold);
+    font-size:1.4rem; cursor:pointer; transition:all 0.15s;
+    display:flex; align-items:center; justify-content:center;
+}
+.mala-tap:active { transform:scale(0.92); background:rgba(212,168,83,0.3); }
+.mala-row { display:flex; gap:10px; }
+
+/* Mood journal */
+.journal-wrap { padding:1.5rem; }
+.mood-entry { background:rgba(212,168,83,0.04); border:1px solid var(--border); border-radius:10px; padding:0.75rem; margin-bottom:0.6rem; display:flex; justify-content:space-between; align-items:flex-start; }
+.mood-entry-text { font-size:0.85rem; color:var(--text); }
+.mood-entry-meta { font-size:0.7rem; color:var(--muted); flex-shrink:0; margin-left:8px; }
+
+/* Timer presets */
+.preset-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:1rem; }
+.preset-btn { background:var(--mist); border:1px solid var(--border); border-radius:10px; padding:0.6rem; font-size:0.8rem; color:var(--muted); cursor:pointer; transition:all 0.2s; text-align:center; }
+.preset-btn:hover, .preset-btn.active { background:rgba(212,168,83,0.1); color:var(--gold); border-color:rgba(212,168,83,0.35); }
+</style>
+{% endblock %}
+{% block content %}
+
+<div style="padding:2rem 0 1rem;">
+    <h1 style="font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:300;color:var(--text);margin-bottom:0.3rem;">
+        Sacred <em style="color:var(--gold-2);">Meditation</em>
+    </h1>
+    <p style="font-size:0.85rem;color:var(--muted);">Breathing exercises, mala counter & mindfulness tools</p>
+</div>
+
+<div class="med-grid">
+
+    <!-- ── Breathing Exercise ── -->
+    <div class="glass-card breath-card">
+        <div class="breath-wrap">
+            <div class="label-tag">Guided Breathing</div>
+
+            <div class="technique-btns">
+                <button class="tech-btn active" data-in="4" data-hold="0" data-out="4" onclick="setTech(this,'Box (4-4-4)','4','0','4')">Box 4-4-4</button>
+                <button class="tech-btn" data-in="4" data-hold="7" data-out="8" onclick="setTech(this,'4-7-8 Calm','4','7','8')">4-7-8 Calm</button>
+                <button class="tech-btn" data-in="6" data-hold="0" data-out="6" onclick="setTech(this,'Deep (6-6)','6','0','6')">Deep 6-6</button>
+                <button class="tech-btn" data-in="2" data-hold="0" data-out="2" onclick="setTech(this,'Energize (2-2)','2','0','2')">Energize 2-2</button>
+            </div>
+
+            <div class="breath-circle-outer">
+                <div class="breath-circle" id="breathCircle">
+                    <div style="text-align:center;">
+                        <div class="breath-count" id="breathCount">-</div>
+                        <div class="breath-phase" id="breathPhase">press start</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="breath-label" id="breathLabel">Box Breathing (4-4-4)</div>
+
+            <div style="display:flex;gap:10px;">
+                <button class="btn-gold" id="breathStart" onclick="startBreath()">
+                    <i class="fas fa-play"></i> Start
+                </button>
+                <button class="btn-ghost" onclick="stopBreath()">
+                    <i class="fas fa-stop"></i> Stop
+                </button>
+                <span style="font-size:0.8rem;color:var(--muted);align-self:center;">Cycles: <strong id="cycleCount" style="color:var(--gold);">0</strong></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Meditation Timer ── -->
+    <div class="glass-card" style="padding:1.5rem;">
+        <div class="label-tag">Meditation Timer</div>
+        <div class="preset-grid">
+            <button class="preset-btn active" onclick="setTimer(this,5)">5 min</button>
+            <button class="preset-btn" onclick="setTimer(this,10)">10 min</button>
+            <button class="preset-btn" onclick="setTimer(this,15)">15 min</button>
+            <button class="preset-btn" onclick="setTimer(this,20)">20 min</button>
+            <button class="preset-btn" onclick="setTimer(this,30)">30 min</button>
+            <button class="preset-btn" onclick="setTimer(this,45)">45 min</button>
+        </div>
+        <div style="text-align:center;margin:1.5rem 0;">
+            <div id="timerDisplay" style="font-family:'Cormorant Garamond',serif;font-size:4rem;color:var(--gold);line-height:1;">05:00</div>
+            <div id="timerStatus" style="font-size:0.75rem;color:var(--muted);margin-top:4px;letter-spacing:0.1em;">READY</div>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:center;">
+            <button class="btn-gold" id="timerBtn" onclick="toggleTimer()"><i class="fas fa-play"></i> Start</button>
+            <button class="btn-ghost" onclick="resetTimer()"><i class="fas fa-redo"></i> Reset</button>
+        </div>
+        <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border);">
+            <div style="font-size:0.72rem;color:var(--muted);text-align:center;">Sessions today: <strong id="sessionCount" style="color:var(--gold);">0</strong></div>
+        </div>
+    </div>
+
+    <!-- ── Mala Counter ── -->
+    <div class="glass-card">
+        <div class="mala-wrap">
+            <div class="label-tag">Japa Mala Counter</div>
+            <p style="font-size:0.78rem;color:var(--muted);text-align:center;margin-top:-0.5rem;">108 beads · tap to count your mantras</p>
+            <div class="mala-display" id="malaDisplay">
+                <div class="mala-inner">
+                    <div class="mala-num" id="malaNum">0</div>
+                    <div class="mala-of108">of 108</div>
+                </div>
+            </div>
+            <button class="mala-tap" onclick="malaTap()" title="Tap for each mantra">🙏</button>
+            <div class="mala-row">
+                <button class="btn-ghost" onclick="malaUndo()"><i class="fas fa-undo"></i> Undo</button>
+                <button class="btn-ghost" onclick="malaReset()"><i class="fas fa-redo"></i> Reset</button>
+            </div>
+            <div style="font-size:0.75rem;color:var(--muted);">Rounds: <strong id="malaRounds" style="color:var(--gold);">0</strong></div>
+        </div>
+    </div>
+
+    <!-- ── Mood Journal ── -->
+    <div class="glass-card">
+        <div class="journal-wrap">
+            <div class="label-tag">Mood Journal</div>
+            <p style="font-size:0.78rem;color:var(--muted);margin-bottom:1rem;">Track your spiritual journey daily</p>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:0.75rem;" id="journalMoods">
+                {% for m in ['😌 Peaceful','🙏 Grateful','😔 Sad','😰 Anxious','💫 Inspired','🌿 Grounded','🔥 Passionate','🌊 Flowing'] %}
+                <button class="tech-btn" onclick="selectJournalMood(this,'{{ m }}')" style="font-size:0.8rem;">{{ m }}</button>
+                {% endfor %}
+            </div>
+            <textarea id="journalNote" class="styled-input" placeholder="Write a reflection, prayer, or intention…" rows="3" style="margin-bottom:0.75rem;padding:0.75rem;border-radius:10px;background:var(--mist);border:1px solid var(--border);resize:none;"></textarea>
+            <button class="btn-gold" onclick="saveJournalEntry()" style="width:100%;justify-content:center;">
+                <i class="fas fa-feather"></i> Save Entry
+            </button>
+            <div id="journalEntries" style="margin-top:1rem;max-height:200px;overflow-y:auto;"></div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+// ── Breathing ──────────────────────────────────────────────
+let breathTech = {in:4, hold:0, out:4, name:'Box Breathing (4-4-4)'};
+let breathRunning = false;
+let breathTimer = null;
+let cycles = 0;
+
+function setTech(btn, name, inS, holdS, outS){
+    document.querySelectorAll('.tech-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    breathTech = {in:+inS, hold:+holdS, out:+outS, name};
+    document.getElementById('breathLabel').textContent = name;
+    if(breathRunning) startBreath();
+}
+
+function startBreath(){
+    stopBreath();
+    breathRunning = true;
+    document.getElementById('breathStart').innerHTML = '<i class="fas fa-pause"></i> Running';
+    runPhase('inhale');
+}
+
+function stopBreath(){
+    breathRunning = false;
+    clearTimeout(breathTimer);
+    const c = document.getElementById('breathCircle');
+    c.className = 'breath-circle';
+    document.getElementById('breathPhase').textContent = 'stopped';
+    document.getElementById('breathCount').textContent = '-';
+    document.getElementById('breathStart').innerHTML = '<i class="fas fa-play"></i> Start';
+}
+
+function runPhase(phase){
+    if(!breathRunning) return;
+    const c = document.getElementById('breathCircle');
+    const phaseEl = document.getElementById('breathPhase');
+    const countEl = document.getElementById('breathCount');
+    let dur = phase === 'inhale' ? breathTech.in : phase === 'hold' ? breathTech.hold : breathTech.out;
+
+    c.style.setProperty('--in-dur', breathTech.in + 's');
+    c.style.setProperty('--out-dur', breathTech.out + 's');
+    c.className = 'breath-circle ' + (phase === 'hold' ? 'hold' : phase === 'inhale' ? 'inhale' : 'exhale');
+
+    const labels = {inhale:'Breathe In', hold:'Hold', exhale:'Breathe Out'};
+    phaseEl.textContent = labels[phase];
+
+    let t = dur;
+    countEl.textContent = t;
+    const iv = setInterval(()=>{
+        t--;
+        if(t <= 0){ clearInterval(iv); return; }
+        countEl.textContent = t;
+    }, 1000);
+
+    breathTimer = setTimeout(()=>{
+        clearInterval(iv);
+        if(!breathRunning) return;
+        if(phase === 'inhale'){
+            if(breathTech.hold > 0) runPhase('hold');
+            else runPhase('exhale');
+        } else if(phase === 'hold'){
+            runPhase('exhale');
+        } else {
+            cycles++;
+            document.getElementById('cycleCount').textContent = cycles;
+            runPhase('inhale');
+        }
+    }, dur * 1000);
+}
+
+// ── Meditation Timer ───────────────────────────────────────
+let timerSecs = 300, timerTotal = 300, timerRunning = false, timerIv = null, sessions = 0;
+
+function setTimer(btn, mins){
+    document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    timerTotal = timerSecs = mins * 60;
+    updateTimerDisplay();
+    if(timerRunning){ clearInterval(timerIv); timerRunning = false; }
+    document.getElementById('timerBtn').innerHTML = '<i class="fas fa-play"></i> Start';
+    document.getElementById('timerStatus').textContent = 'READY';
+}
+
+function toggleTimer(){
+    if(timerRunning){
+        clearInterval(timerIv); timerRunning = false;
+        document.getElementById('timerBtn').innerHTML = '<i class="fas fa-play"></i> Resume';
+        document.getElementById('timerStatus').textContent = 'PAUSED';
+    } else {
+        timerRunning = true;
+        document.getElementById('timerBtn').innerHTML = '<i class="fas fa-pause"></i> Pause';
+        document.getElementById('timerStatus').textContent = 'MEDITATING';
+        timerIv = setInterval(()=>{
+            timerSecs--;
+            updateTimerDisplay();
+            if(timerSecs <= 0){
+                clearInterval(timerIv); timerRunning = false;
+                sessions++;
+                document.getElementById('sessionCount').textContent = sessions;
+                document.getElementById('timerStatus').textContent = '✓ COMPLETE';
+                document.getElementById('timerBtn').innerHTML = '<i class="fas fa-play"></i> Start';
+                
+                document.getElementById('timerDisplay').style.color='var(--green)';setTimeout(()=>{document.getElementById('timerDisplay').style.color='var(--gold)';},3000);
+                timerSecs = timerTotal;
+                updateTimerDisplay();
+            }
+        }, 1000);
+    }
+}
+
+function resetTimer(){
+    clearInterval(timerIv); timerRunning = false;
+    timerSecs = timerTotal;
+    updateTimerDisplay();
+    document.getElementById('timerBtn').innerHTML = '<i class="fas fa-play"></i> Start';
+    document.getElementById('timerStatus').textContent = 'READY';
+}
+
+function updateTimerDisplay(){
+    const m = String(Math.floor(timerSecs/60)).padStart(2,'0');
+    const s = String(timerSecs%60).padStart(2,'0');
+    document.getElementById('timerDisplay').textContent = `${m}:${s}`;
+}
+
+// ── Mala ───────────────────────────────────────────────────
+let malaCount = 0, malaRounds = 0;
+
+function malaTap(){
+    malaCount++;
+    if(malaCount > 108){ malaCount = 1; malaRounds++; document.getElementById('malaRounds').textContent = malaRounds; }
+    updateMala();
+    // Haptic
+    if(navigator.vibrate) navigator.vibrate(30);
+}
+function malaUndo(){ if(malaCount > 0){ malaCount--; updateMala(); } }
+function malaReset(){ malaCount = 0; updateMala(); }
+function updateMala(){
+    document.getElementById('malaNum').textContent = malaCount;
+    const pct = (malaCount/108)*100;
+    document.getElementById('malaDisplay').style.setProperty('--pct', pct);
+}
+
+// ── Journal ────────────────────────────────────────────────
+let selectedJMood = '';
+let journalData = JSON.parse(localStorage.getItem('spiritualJournal') || '[]');
+
+function selectJournalMood(btn, mood){
+    document.querySelectorAll('#journalMoods .tech-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedJMood = mood;
+}
+
+function saveJournalEntry(){
+    const note = document.getElementById('journalNote').value.trim();
+    if(!selectedJMood && !note) return;
+    const entry = {mood: selectedJMood, note, date: new Date().toLocaleString()};
+    journalData.unshift(entry);
+    if(journalData.length > 30) journalData.pop();
+    localStorage.setItem('spiritualJournal', JSON.stringify(journalData));
+    document.getElementById('journalNote').value = '';
+    selectedJMood = '';
+    document.querySelectorAll('#journalMoods .tech-btn').forEach(b=>b.classList.remove('active'));
+    renderJournal();
+}
+
+function renderJournal(){
+    const el = document.getElementById('journalEntries');
+    el.innerHTML = journalData.slice(0,5).map(e=>`
+        <div class="mood-entry">
+            <div class="mood-entry-text">${e.mood ? '<strong>' + e.mood + '</strong> — ' : ''}${escHtml(e.note||'')}</div>
+            <div class="mood-entry-meta">${e.date}</div>
+        </div>`).join('');
+}
+
+function escHtml(t){ return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+renderJournal();
+</script>
+{% endblock %}

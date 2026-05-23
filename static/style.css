@@ -1,0 +1,57 @@
+/*
+ * Spiritual AI — Supplemental Stylesheet
+ * Main design tokens live in base.html <style> block.
+ * This file adds accessibility, mobile overrides, and polish.
+ */
+
+/* ── Focus ring for accessibility ─────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid rgba(212, 168, 83, 0.6);
+  outline-offset: 2px;
+}
+
+/* ── Smooth page fade-in ──────────────────────────────────────────────────── */
+.page-body {
+  animation: pageFadeIn 0.4s ease forwards;
+}
+@keyframes pageFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Scrollbar ────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar       { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(212,168,83,0.3); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(212,168,83,0.55); }
+
+/* ── Text selection ───────────────────────────────────────────────────────── */
+::selection { background: rgba(212,168,83,0.3); color: #fff; }
+
+/* ── Mobile navbar ────────────────────────────────────────────────────────── */
+@media (max-width: 991px) {
+  .navbar-collapse {
+    background: rgba(15,17,23,0.97);
+    border: 1px solid rgba(212,168,83,0.15);
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    margin-top: 0.5rem;
+  }
+  .nav-link { padding: 0.55rem 0.75rem !important; }
+}
+
+/* ── Mobile layout fixes ──────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  body { overflow-x: hidden; }
+  .glass-card  { border-radius: 12px; }
+  .contact-grid  { grid-template-columns: 1fr !important; }
+  .journal-layout { grid-template-columns: 1fr !important; }
+  #audioBtn { bottom: 1rem; right: 1rem; width: 40px; height: 40px; }
+}
+
+/* ── Print styles ─────────────────────────────────────────────────────────── */
+@media print {
+  #bg-canvas, #preloader, #audioBtn, .navbar, .site-footer { display: none !important; }
+  body { background: #fff; color: #000; }
+  .glass-card { border: 1px solid #ccc; box-shadow: none; }
+}
