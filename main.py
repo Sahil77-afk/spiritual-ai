@@ -10,7 +10,6 @@ import uuid
 import logging
 from datetime import datetime
 
-import requests
 from flask import Flask, jsonify, redirect, render_template, request, session, url_for
 from flask_mail import Mail, Message
 from mistralai import Mistral
@@ -198,17 +197,23 @@ def zodiac_sign(dt: datetime) -> str:
 
 
 def fetch_horoscope(sign: str) -> str:
+    """Generate a daily horoscope using Mistral AI (no external API dependency)."""
+    today = datetime.now().strftime("%B %d, %Y")
+    prompt = (
+        f"You are a wise Vedic and Western astrologer. Write a warm, insightful daily horoscope "
+        f"for {sign} for {today}. Cover: energy of the day, love/relationships, career/focus, "
+        f"and a spiritual tip. Keep it to 4-5 sentences, uplifting and specific to {sign}'s traits. "
+        f"End with one relevant quote from the Bhagavad Gita, Bible, or Quran. Plain text only, no headers."
+    )
     try:
-        url = (
-            "https://horoscope-app-api.vercel.app/api/v1/get-horoscope/daily"
-            f"?sign={sign}&day=TODAY"
+        resp = mistral.chat.complete(
+            model=MODEL,
+            messages=[{"role": "user", "content": prompt}],
         )
-        r = requests.get(url, timeout=6)
-        if r.status_code == 200:
-            return r.json().get("data", {}).get("horoscope_data", "No horoscope found.")
+        return resp.choices[0].message.content
     except Exception as exc:
-        log.warning("Horoscope API error: %s", exc)
-    return "Could not fetch today's horoscope. Please try again later."
+        log.error("Mistral horoscope error: %s", exc)
+        return "The cosmos are reflecting deeply today. Take time for stillness and inner guidance."
 
 
 # ── Journal Storage (flat-file) ────────────────────────────────────────────────
